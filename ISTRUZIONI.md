@@ -10,6 +10,8 @@ Incolla in Claude Code, nella cartella del tuo lavoro: «Scarica questo document
 
 Completa un primo lavoro della persona: scegli dai suoi materiali un risultato utile, crea soltanto gli specialisti necessari e prova ciò che consegnano. Ogni agente ha un solo mestiere, istruzioni salvate e limiti precisi. Comincia da un agente; quando servono due mestieri, coordinali come nel passo 5.
 
+Prima di creare schede, individua dai materiali quali mestieri servono davvero al lavoro scelto. Se basta un solo mestiere, esegui i passi 1–4 e le sole prove pertinenti: non eseguire il passo 5, non creare il caso call dimostrativo e non creare altre schede di esempio. Usa il passo 5 e le relative prove solo quando il risultato scelto richiede due mestieri distinti.
+
 Questa è la mini guida pratica di Sal, ispirata al workshop Anthropic [Ship your first Managed Agent](https://www.youtube.com/watch?v=19HDQ9HppOA). Il workshop costruisce con codice un agente che indaga incidenti tecnici. Qui applichiamo l'idea al lavoro aziendale e facciamo scrivere i file a Claude, in italiano. Gli esempi aziendali sotto sono un adattamento di Sal.
 
 Il percorso di squadra adatta anche il [sistema di ricerca multi-agente di Anthropic](https://www.anthropic.com/engineering/multi-agent-research-system): un coordinatore divide il lavoro, affida incarichi precisi e raccoglie i risultati. Qui lo applichiamo a una call aziendale, con i subagenti di Claude Code.
@@ -162,6 +164,8 @@ Frase di avvio: **«Usa l'agente analista-richieste-sito sul file dati-richieste
 Delega esplicitamente al nome salvato, passando il percorso effettivo del file. Controlla che nella sessione compaia l'avvio dello specialista. Se la nuova definizione non viene rilevata, verifica nome e formato; una nuova cartella di agenti può richiedere di riaprire la sessione.
 
 Leggi il risultato. Il coordinatore lo confronta con le prove sotto e conserva il rapporto nella cartella del lavoro, indicando dati usati ed esito. Scheda scritta, agente avviato e risultato corretto sono tre fatti da verificare separatamente.
+
+**Il passo 5 si esegue solo quando il lavoro scelto richiede davvero due mestieri. Se basta un solo specialista, completa il lavoro e le prove pertinenti del passo 4; salta il passo 5 e il suo caso call dimostrativo.**
 
 #### 5. Coordina due specialisti su un lavoro completo
 
