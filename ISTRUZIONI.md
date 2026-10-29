@@ -2,7 +2,7 @@
 
 ## Per te, una riga
 
-Incolla in Claude Code, nella cartella del tuo lavoro: «Leggi questa guida e completa un lavoro che ripeto con gli agenti necessari, coordinandoli e verificando il risultato: https://raw.githubusercontent.com/salChiarenza/ecosistema-ai-gratuito/main/ISTRUZIONI.md. Parti dai miei materiali; chiedimi solo ciò che manca.»
+Incolla in Claude Code, nella cartella del tuo lavoro: «Scarica questo documento in un file temporaneo e leggilo integralmente dal file, incluse tutte le schede di esempio e le prove: https://raw.githubusercontent.com/salChiarenza/ecosistema-ai-gratuito/main/ISTRUZIONI.md. Usa il testo completo, senza sostituirlo con un riassunto o un’anteprima. Poi completa un lavoro che ripeto con gli agenti necessari, coordinandoli e verificando il risultato. Parti dai miei materiali; chiedimi solo ciò che manca.»
 
 ## Istruzioni per la tua AI
 
