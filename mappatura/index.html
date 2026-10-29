@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Metodo AI Mappatura</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F5F5F7;color:#1F2937;display:flex;min-height:100vh}
+
+/* SIDEBAR */
+#sidebar{width:240px;min-width:240px;background:#263B32;color:#fff;position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column}
+.sb-logo{padding:20px 18px 12px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.lai-logo{display:block;width:148px;max-width:100%;height:auto;margin:0 0 10px;border-radius:4px}
+.sb-logo h2{font-size:13px;font-weight:600;color:#F8F6F1;letter-spacing:.5px;text-transform:uppercase}
+.sb-logo p{font-size:11px;color:rgba(255,255,255,0.45);margin-top:3px}
+.sb-progress{padding:10px 18px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.sb-progress-bar{height:4px;background:rgba(255,255,255,0.1);border-radius:99px;overflow:hidden}
+.sb-progress-fill{height:100%;background:#4ade80;border-radius:99px;transition:width .3s;width:0%}
+.sb-progress-text{font-size:10px;color:rgba(255,255,255,0.5);margin-top:6px;text-align:right}
+.sb-nav{flex:1;padding:8px 0}
+.sb-item{display:flex;align-items:center;gap:8px;padding:9px 18px;font-size:12.5px;color:rgba(255,255,255,0.6);cursor:pointer;transition:all .15s;border-left:3px solid transparent;line-height:1.3}
+.sb-item:hover{color:#fff;background:rgba(255,255,255,0.06)}
+.sb-item.active{color:#fff;background:rgba(255,255,255,0.08);border-left-color:#4ade80}
+.sb-item.completed .sb-check{display:flex}
+.sb-check{display:none;width:14px;height:14px;background:#4ade80;border-radius:50%;align-items:center;justify-content:center;flex-shrink:0;color:#1A1A2E;font-size:9px;font-weight:700}
+.sb-section{padding:14px 18px 4px;font-size:10px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.8px}
+.sb-actions{padding:12px 18px;border-top:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;gap:6px}
+.sb-btn{background:rgba(255,255,255,0.08);color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:8px 12px;font-size:11px;cursor:pointer;text-align:center;transition:background .15s}
+.sb-btn:hover{background:rgba(255,255,255,0.15)}
+.sb-btn-primary{background:#1B5E20;border-color:#1B5E20}
+.sb-btn-primary:hover{background:#2E7D32}
+.sb-btn-danger{background:transparent;border-color:rgba(255,100,100,0.3);color:#fca5a5}
+.sb-btn-danger:hover{background:rgba(255,100,100,0.1)}
+
+/* MAIN */
+#main{flex:1;overflow-y:auto;padding:0}
+.section{display:none}
+.section.active{display:block}
+
+/* HERO */
+.hero{background:#263B32;color:#fff;padding:48px 40px 40px}
+.hero h1{font-size:32px;font-weight:700;margin-bottom:8px}
+.hero p{font-size:16px;color:rgba(255,255,255,0.65);max-width:560px;line-height:1.6}
+.hero .lai-credit{font-size:13px;margin-top:14px;color:rgba(255,255,255,.8)}
+.hero .lai-credit a{color:inherit}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:28px 0 0}
+.stat-card{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:16px 12px;text-align:center}
+.stat-card .num{font-size:28px;font-weight:700;color:#4ade80}
+.stat-card .lbl{font-size:11px;color:rgba(255,255,255,0.5);margin-top:4px}
+
+/* CONTENT */
+.content{padding:32px 40px;max-width:860px}
+.card{background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:24px;margin-bottom:20px}
+.card h3{font-size:16px;font-weight:600;color:#1F2937;margin-bottom:14px}
+
+/* SCHEDA HEADER */
+.scheda-header{background:#fff;border-bottom:1px solid #E5E7EB;padding:24px 40px 20px;position:sticky;top:0;z-index:10}
+.scheda-header .num-badge{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;background:#1B5E20;color:#fff;border-radius:50%;font-size:14px;font-weight:700;margin-bottom:10px}
+.scheda-header h2{font-size:22px;font-weight:700;color:#1F2937}
+.scheda-header p{font-size:14px;color:#6B7280;margin-top:4px}
+
+/* NAV BUTTONS */
+.nav-buttons{display:flex;justify-content:space-between;gap:12px;margin-top:24px;padding-bottom:40px}
+.nav-btn{padding:10px 20px;border-radius:8px;font-size:13.5px;font-weight:600;cursor:pointer;border:none;transition:all .15s;display:flex;align-items:center;gap:6px}
+.nav-btn-prev{background:#fff;border:1px solid #E5E7EB;color:#374151}
+.nav-btn-prev:hover{background:#F5F5F7}
+.nav-btn-next{background:#1B5E20;color:#fff;margin-left:auto}
+.nav-btn-next:hover{background:#2E7D32}
+
+/* TABLES */
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{background:#F5F5F7;color:#374151;font-weight:600;text-align:left;padding:10px 12px;border-bottom:1.5px solid #E5E7EB}
+td{padding:9px 12px;border-bottom:1px solid #E5E7EB;color:#374151;vertical-align:top;line-height:1.5}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#FAFAFA}
+
+/* BOX OUTPUT VERDE */
+.box-output{background:#E8F5E9;border:1px solid #A5D6A7;border-radius:10px;padding:18px 20px;margin-top:16px}
+.box-output .box-label{font-size:11px;font-weight:700;color:#1B5E20;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
+.box-output p{font-size:13.5px;color:#1B5E20;line-height:1.6}
+
+/* BOX HUMAN */
+.box-human{background:#FFF3E0;border:1px solid #FFCC80;border-radius:10px;padding:16px 20px;margin-top:16px}
+.box-human .box-label{font-size:11px;font-weight:700;color:#E65100;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
+.box-human p{font-size:13.5px;color:#BF360C;line-height:1.6}
+
+/* BOX PROMPT */
+.box-prompt{background:#1A1A2E;border-radius:10px;padding:20px;margin-top:16px;position:relative}
+.box-prompt pre{font-family:'SF Mono','Fira Code',monospace;font-size:12px;color:#a5b4fc;line-height:1.7;white-space:pre-wrap;word-break:break-word}
+.copy-btn{position:absolute;top:14px;right:14px;background:#1B5E20;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;transition:background .15s}
+.copy-btn:hover{background:#2E7D32}
+.copy-btn.copied{background:#388E3C}
+
+/* CHECKLIST */
+.checklist-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #E5E7EB;cursor:pointer;user-select:none}
+.checklist-item:last-child{border-bottom:none}
+.checklist-item input[type=checkbox]{width:16px;height:16px;accent-color:#1B5E20;cursor:pointer}
+.checklist-item label{font-size:13.5px;color:#374151;cursor:pointer;line-height:1.4;flex:1}
+.checklist-item.checked label{color:#6B7280;text-decoration:line-through}
+.progress-bar-wrap{background:#E5E7EB;border-radius:99px;height:8px;margin-top:14px;overflow:hidden}
+.progress-bar-fill{height:100%;background:#1B5E20;border-radius:99px;transition:width .3s}
+.progress-info{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+.progress-info span{font-size:12px;color:#6B7280}
+.score-badge{display:inline-block;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600;margin-top:10px}
+.score-red{background:#FFEBEE;color:#B71C1C}
+.score-yellow{background:#FFF8E1;color:#F57F17}
+.score-green{background:#E8F5E9;color:#1B5E20}
+
+/* FLOW */
+.flow-step{display:flex;gap:14px}
+.flow-line{display:flex;flex-direction:column;align-items:center}
+.flow-dot{width:28px;height:28px;border-radius:50%;background:#1B5E20;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.flow-connector{width:2px;flex:1;background:#E5E7EB;min-height:18px}
+.flow-body{padding:0 0 20px;flex:1}
+.flow-body h4{font-size:14px;font-weight:600;color:#1F2937;margin-bottom:2px}
+.flow-body p{font-size:13px;color:#6B7280;line-height:1.5}
+
+/* OUTCOME */
+.outcome-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.outcome-card{background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:16px;display:flex;align-items:flex-start;gap:10px}
+.outcome-card.done{border-color:#A5D6A7;background:#F1F8E9}
+.outcome-icon{width:28px;height:28px;background:#E8F5E9;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;color:#1B5E20;font-weight:700}
+.outcome-card.done .outcome-icon{background:#1B5E20;color:#fff}
+.outcome-card p{font-size:13px;color:#374151;font-weight:500;line-height:1.4}
+
+/* CLOSE */
+.box-close{background:#1A1A2E;border-radius:12px;padding:24px 28px;margin-top:24px}
+.box-close p{font-size:16px;color:rgba(255,255,255,0.85);font-style:italic;line-height:1.7;text-align:center}
+
+/* OBJ LIST */
+.obj-list{list-style:none;padding:0}
+.obj-list li{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:13.5px;color:#374151;border-bottom:1px solid #F0F0F0}
+.obj-list li:last-child{border-bottom:none}
+.obj-num{width:22px;height:22px;border-radius:50%;background:#1B5E20;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+
+/* FORMULA */
+.formula-item{background:#F5F5F7;border-radius:8px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px}
+.formula-tag{background:#1A1A2E;color:#a5b4fc;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:700;white-space:nowrap;font-family:monospace}
+.formula-desc{font-size:13px;color:#374151;line-height:1.5}
+
+/* INPUTS */
+input[type=text],textarea,select{width:100%;padding:8px 12px;border:1px solid #E5E7EB;border-radius:6px;font-size:13.5px;color:#1F2937;font-family:inherit;background:#fff;transition:border-color .15s,box-shadow .15s;resize:vertical}
+input[type=text]:focus,textarea:focus,select:focus{outline:none;border-color:#1B5E20;box-shadow:0 0 0 3px rgba(27,94,32,0.1)}
+input[type=text]::placeholder,textarea::placeholder{color:#9CA3AF}
+textarea{min-height:60px;line-height:1.5}
+.field-group{margin-bottom:14px}
+.field-label{display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px}
+.field-hint{font-size:11px;color:#9CA3AF;margin-top:4px;font-style:italic}
+
+/* AUTOSAVE INDICATOR */
+.autosave{position:fixed;bottom:20px;right:20px;background:#1B5E20;color:#fff;padding:8px 14px;border-radius:6px;font-size:12px;opacity:0;transform:translateY(10px);transition:all .3s;z-index:100;pointer-events:none}
+.autosave.show{opacity:1;transform:translateY(0)}
+
+/* PRINT */
+@media print{
+  #sidebar,.nav-buttons,.copy-btn,.autosave{display:none !important}
+  .section{display:block !important;page-break-after:always}
+  .scheda-header{position:static}
+  body{background:#fff}
+  .card{break-inside:avoid;border:1px solid #ccc}
+}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:12px;max-width:600px;width:100%;max-height:80vh;overflow-y:auto;padding:28px}
+.modal h3{font-size:18px;font-weight:700;margin-bottom:14px}
+.modal p{font-size:14px;color:#6B7280;line-height:1.6;margin-bottom:16px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.modal-btn{padding:9px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid #E5E7EB;background:#fff;color:#374151}
+.modal-btn-primary{background:#1B5E20;border-color:#1B5E20;color:#fff}
+.modal-btn-danger{background:#B71C1C;border-color:#B71C1C;color:#fff}
+
+/* Pulsante Menu: compare solo sul telefono */
+.sb-toggle{display:none}
+/* Tabelle larghe (la piu' larga chiede 530 px di spazio): fino a 900 px ogni riga diventa un blocco con le etichette */
+@media screen and (max-width:900px){
+  table,thead,tbody,tr,th,td{display:block}
+  thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  tr{padding:10px 0;border-bottom:1px solid #E5E7EB}
+  tr:last-child{border-bottom:none}
+  td{padding:3px 0;border-bottom:none}
+  td[data-label]::before{content:attr(data-label);display:block;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#6B7280}
+}
+/* Telefono e sotto i 768 px: la barra laterale diventa una testata con il pulsante Menu */
+@media screen and (max-width:767px){
+  body{display:block}
+  #sidebar{width:100%;min-width:0;height:auto;max-height:100vh;max-height:100dvh;z-index:50}
+  .sb-logo{display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"logo title menu";align-items:center;column-gap:12px;padding:10px 14px;border-bottom:none}
+  .sb-logo .lai-logo{grid-area:logo;width:96px;margin:0}
+  .sb-logo h2{grid-area:title;font-size:12px;line-height:1.3}
+  .sb-logo p{display:none}
+  .sb-toggle{grid-area:menu;display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 16px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:#fff;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+  .sb-progress{display:flex;align-items:center;gap:10px;padding:0 14px 10px;border-bottom:none}
+  .sb-progress-bar{flex:1}
+  .sb-progress-text{margin-top:0;white-space:nowrap}
+  .sb-nav,.sb-actions{display:none}
+  #sidebar.open .sb-nav{display:block;border-top:1px solid rgba(255,255,255,0.08)}
+  #sidebar.open .sb-actions{display:flex}
+  .sb-item{padding:10px 18px;font-size:14px}
+  .sb-btn{padding:11px 12px;font-size:13px}
+  .hero{padding:26px 18px 24px}
+  .hero h1{font-size:26px}
+  .hero p{font-size:15px}
+  .stats-row{grid-template-columns:repeat(2,1fr);gap:10px;margin-top:22px}
+  .stat-card .num{font-size:24px}
+  .content{padding:18px 14px;max-width:none}
+  .card{padding:18px 16px}
+  .scheda-header{position:static;padding:18px 16px 14px}
+  .scheda-header h2{font-size:20px}
+  .nav-btn{padding:11px 14px;font-size:13px}
+  .box-prompt{padding:50px 14px 16px}
+  .box-close{padding:20px 18px}
+  .box-close p{font-size:15px}
+  input[type=text],textarea,select{font-size:16px}
+  div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important}
+  .autosave{right:12px;bottom:12px}
+  .modal{padding:20px}
+  .modal-actions{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <div class="sb-logo">
+    <img class="lai-logo" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABC0AAAEpCAYAAAC3Jdi6AAABUmlDQ1BJQ0MgUHJvZmlsZQAAGJV1kM1LAlEUxc+YYWVQQYsWBbMQJLAIlWgVmVQILQYr+9iN4zQGOj7GiWrf3xAtWruKtrpLadkmEAra1bJtNZuU131ONVp04XJ+73C473IBqaUyVvADKJq2lV5blnd29+TAC3wYQxAhTKlamSUUZZ0i+Nbecu4hCW3OiFmV8ERlqdHUVy/ebq59+du/+Z4ayulljbRFHdKYZQOSTKwc2UwwIx63aCniU8GGy+eCsy5fdjKb6SRxnXhUy6s54jviSLbLN7q4WDjUvnYQ2w/r5tYG6QD1JKKIYwWxfzLxTiaJEhhOYOEABvKwISNBDkMBOnEKJjTMIkIcxRz1vLjt75t53vEisDBIXz17XqYG1FLAyLvnhZ/ofQU0Mky11J9LSo6/vB+LuhysAv1nnL9uA4FpoP3A+UeV83YF6HsE6s4n67pjDMxlvDQAAABWZVhJZk1NACoAAAAIAAGHaQAEAAAAAQAAABoAAAAAAAOShgAHAAAAEgAAAESgAgAEAAAAAQAABC2gAwAEAAAAAQAAASkAAAAAQVNDSUkAAABTY3JlZW5zaG90S25nxQAAAddpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IlhNUCBDb3JlIDYuMC4wIj4KICAgPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICAgICAgPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIKICAgICAgICAgICAgeG1sbnM6ZXhpZj0iaHR0cDovL25zLmFkb2JlLmNvbS9leGlmLzEuMC8iPgogICAgICAgICA8ZXhpZjpQaXhlbFlEaW1lbnNpb24+Mjk3PC9leGlmOlBpeGVsWURpbWVuc2lvbj4KICAgICAgICAgPGV4aWY6UGl4ZWxYRGltZW5zaW9uPjEwNjk8L2V4aWY6UGl4ZWxYRGltZW5zaW9uPgogICAgICAgICA8ZXhpZjpVc2VyQ29tbWVudD5TY3JlZW5zaG90PC9leGlmOlVzZXJDb21tZW50PgogICAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICAgPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4KaxiCwAAAQABJREFUeAHt3QeYFEXawPGXJDkjoAICSgYlgygmFFAEREAQEfN55nCepweGM2C4M313eqeinhEVQVERsygoKkEQUTGAgIIcOUiG+fptXdiF3UndXV3d86/n4WF3prvCr2ZrZt6uriomIgnnHwkBBBBAAAEEEEAAAQQQQAABBBCwSqC4VbWhMggggAACCCCAAAIIIIAAAggggMDvAgQteCkggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCAAAIIIIAAAgQteA0ggAACCCCAAAIIIIAAAggggICVAgQtrOwWKoUAAggggAACCCCA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CCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBBgKCFBzxORQABBBBAAAEEEEAAAQQQQACB4AQIWgRnS84IIIAAAggggAACCCCAAAIIIOBB4P8BMWyMgEXIlKQAAAAASUVORK5CYII=" alt="LeaderAI">
+    <h2>Metodo AI Mappatura</h2>
+    <p>Dal problema al workflow</p>
+    <button class="sb-toggle" id="sbToggle" type="button" aria-expanded="false" aria-controls="sidebarNav" onclick="toggleMenu()">Menu</button>
+  </div>
+  <div class="sb-progress">
+    <div class="sb-progress-bar"><div class="sb-progress-fill" id="globalProgress"></div></div>
+    <div class="sb-progress-text" id="globalProgressText">0% completato</div>
+  </div>
+  <nav class="sb-nav" id="sidebarNav"></nav>
+  <div class="sb-actions">
+    <button class="sb-btn sb-btn-primary" onclick="exportSummary()">Esporta riepilogo</button>
+    <button class="sb-btn" onclick="window.print()">Stampa / PDF</button>
+    <button class="sb-btn sb-btn-danger" onclick="confirmReset()">Azzera tutto</button>
+  </div>
+</div>
+
+<div id="main">
+
+<!-- HOME -->
+<div id="home" class="section active">
+  <div class="hero">
+    <h1>Metodo AI Mappatura</h1>
+    <p>Trasforma un problema quotidiano in prompt, procedura e workflow.</p>
+    <p class="lai-credit">Metodo di Sal Chiarenza, AI Strategist. <a href="https://salchiarenza.ai/">salchiarenza.ai</a></p>
+    <div style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:18px 20px;margin-top:24px;max-width:620px">
+      <p style="font-size:14px;color:rgba(255,255,255,0.75);line-height:1.7;font-style:italic">"Non cerchiamo automazioni spettacolari. Cerchiamo attività ripetitive, documenti ricorrenti, controlli manuali e decisioni che oggi richiedono troppo tempo."</p>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="num">1</div><div class="lbl">Problema</div></div>
+      <div class="stat-card"><div class="num">1</div><div class="lbl">Processo</div></div>
+      <div class="stat-card"><div class="num">1</div><div class="lbl">Prompt</div></div>
+      <div class="stat-card"><div class="num">1</div><div class="lbl">Controllo umano</div></div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="card">
+      <h3>Come funziona questo strumento</h3>
+      <ul class="obj-list">
+        <li><span class="obj-num">1</span>Compili le schede una alla volta</li>
+        <li><span class="obj-num">2</span>Tutto si salva automaticamente nel browser</li>
+        <li><span class="obj-num">3</span>Alla fine esporti un riepilogo da portare con te</li>
+        <li><span class="obj-num">4</span>Puoi tornare quando vuoi e continuare</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Obiettivi del laboratorio</h3>
+      <ul class="obj-list">
+        <li><span class="obj-num">1</span>Chiarire il problema</li>
+        <li><span class="obj-num">2</span>Mappare il processo</li>
+        <li><span class="obj-num">3</span>Capire se l'AI è adatta</li>
+        <li><span class="obj-num">4</span>Scrivere un prompt operativo</li>
+        <li><span class="obj-num">5</span>Validare l'output</li>
+        <li><span class="obj-num">6</span>Trasformarlo in procedura</li>
+      </ul>
+    </div>
+    <div class="box-output">
+      <div class="box-label">Messaggio chiave</div>
+      <p>L'AI non parte dal tool. Parte da un problema ripetitivo, da un processo chiaro e da un controllo umano definito.</p>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn nav-btn-next" onclick="goTo('s1')">Inizia il metodo &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCHEDA 1 -->
+<div id="s1" class="section">
+  <div class="scheda-header">
+    <div class="num-badge">1</div>
+    <h2>Qual è il problema che vuoi risolvere?</h2>
+    <p>Identifica l'attività giusta prima di pensare all'AI.</p>
+  </div>
+  <div class="content">
+    <div class="card">
+      <h3>Domande guida</h3>
+      <div class="field-group"><label class="field-label">Quale attività ti fa perdere tempo ogni settimana?</label><textarea data-key="s1_q1" placeholder="Scrivi qui..."></textarea></div>
+      <div class="field-group"><label class="field-label">Cosa si ripete sempre uguale o quasi?</label><textarea data-key="s1_q2" placeholder="Scrivi qui..."></textarea></div>
+      <div class="field-group"><label class="field-label">Dove copi e incolli informazioni?</label><textarea data-key="s1_q3" placeholder="Scrivi qui..."></textarea></div>
+      <div class="field-group"><label class="field-label">Dove cerchi dati in più documenti?</label><textarea data-key="s1_q4" placeholder="Scrivi qui..."></textarea></div>
+      <div class="field-group"><label class="field-label">Dove fai controlli manuali?</label><textarea data-key="s1_q5" placeholder="Scrivi qui..."></textarea></div>
+      <div class="field-group"><label class="field-label">Dove si creano errori o dimenticanze?</label><textarea data-key="s1_q6" placeholder="Scrivi qui..."></textarea></div>
+      <div class="field-group"><label class="field-label">Chi aspetta il tuo output?</label><textarea data-key="s1_q7" placeholder="Scrivi qui..."></textarea></div>
+      <div class="field-group" style="margin-bottom:0"><label class="field-label">Cosa succede se l'attività viene fatta male?</label><textarea data-key="s1_q8" placeholder="Scrivi qui..."></textarea></div>
+    </div>
+    <div class="card">
+      <h3>Componi la frase finale</h3>
+      <div class="field-group"><label class="field-label">Voglio usare l'AI per aiutarmi a</label><input type="text" data-key="s1_aiuto" placeholder="es. confrontare preventivi"></div>
+      <div class="field-group"><label class="field-label">partendo da</label><input type="text" data-key="s1_partendo" placeholder="es. PDF dei fornitori"></div>
+      <div class="field-group" style="margin-bottom:0"><label class="field-label">per ottenere</label><input type="text" data-key="s1_ottenere" placeholder="es. una tabella comparativa"></div>
+    </div>
+    <div class="box-output">
+      <div class="box-label">La tua frase</div>
+      <p id="s1-frase" style="font-style:italic">Voglio usare l'AI per aiutarmi a <strong>______</strong>, partendo da <strong>______</strong>, per ottenere <strong>______</strong>.</p>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn nav-btn-prev" onclick="goTo('home')">&larr; Indietro</button>
+      <button class="nav-btn nav-btn-next" onclick="goTo('s2')">Avanti: valuta il caso &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCHEDA 2 -->
+<div id="s2" class="section">
+  <div class="scheda-header">
+    <div class="num-badge">2</div>
+    <h2>È un buon caso d'uso AI?</h2>
+    <p>Verifica se il problema è adatto prima di costruire qualcosa.</p>
+  </div>
+  <div class="content">
+    <div class="card">
+      <h3>Checklist di valutazione</h3>
+      <div id="cl2"></div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="pb2" style="width:0%"></div></div>
+      <div class="progress-info"><span id="pi2">0 / 8 selezionati</span><span id="score2" class="score-badge score-red">Non partire da qui</span></div>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn nav-btn-prev" onclick="goTo('s1')">&larr; Indietro</button>
+      <button class="nav-btn nav-btn-next" onclick="goTo('s3')">Avanti: mappa il processo &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCHEDA 3 -->
+<div id="s3" class="section">
+  <div class="scheda-header">
+    <div class="num-badge">3</div>
+    <h2>Mappa il processo attuale</h2>
+    <p>Scrivi come funziona oggi, prima di cambiare qualcosa.</p>
+  </div>
+  <div class="content">
+    <div class="card">
+      <h3>Flusso del processo</h3>
+      <div style="display:flex;align-items:center;gap:0;flex-wrap:wrap">
+        <span style="background:#1B5E20;color:#fff;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600">Input</span>
+        <span style="color:#9CA3AF;padding:0 6px;font-size:18px">&rsaquo;</span>
+        <span style="background:#F5F5F7;border:1px solid #E5E7EB;color:#374151;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:500">Azione manuale</span>
+        <span style="color:#9CA3AF;padding:0 6px;font-size:18px">&rsaquo;</span>
+        <span style="background:#FFF3E0;border:1px solid #FFCC80;color:#BF360C;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:500">Controllo</span>
+        <span style="color:#9CA3AF;padding:0 6px;font-size:18px">&rsaquo;</span>
+        <span style="background:#F5F5F7;border:1px solid #E5E7EB;color:#374151;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:500">Output</span>
+        <span style="color:#9CA3AF;padding:0 6px;font-size:18px">&rsaquo;</span>
+        <span style="background:#E8F5E9;border:1px solid #A5D6A7;color:#1B5E20;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:500">Validazione</span>
+        <span style="color:#9CA3AF;padding:0 6px;font-size:18px">&rsaquo;</span>
+        <span style="background:#F5F5F7;border:1px solid #E5E7EB;color:#374151;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:500">Archivio</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Compila la mappa</h3>
+      <div id="s3-rows"></div>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn nav-btn-prev" onclick="goTo('s2')">&larr; Indietro</button>
+      <button class="nav-btn nav-btn-next" onclick="goTo('s4')">Avanti: input e materiali &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCHEDA 4 -->
+<div id="s4" class="section">
+  <div class="scheda-header">
+    <div class="num-badge">4</div>
+    <h2>Definisci input e materiali</h2>
+    <p>L'AI lavora solo con quello che le dai. Ogni input conta.</p>
+  </div>
+  <div class="content">
+    <div class="card">
+      <h3>Materiali per il tuo caso</h3>
+      <div class="field-group"><label class="field-label">Documenti (PDF, Word, contratti)</label><textarea data-key="s4_doc" placeholder="Quali documenti userà l'AI?"></textarea></div>
+      <div class="field-group"><label class="field-label">Dati (tabelle, KPI, listini)</label><textarea data-key="s4_dati" placeholder="Quali dati strutturati servono?"></textarea></div>
+      <div class="field-group"><label class="field-label">Email / note</label><textarea data-key="s4_email" placeholder="Conversazioni o brief rilevanti?"></textarea></div>
+      <div class="field-group"><label class="field-label">Regole interne</label><textarea data-key="s4_regole" placeholder="Policy, linee guida, tono di comunicazione?"></textarea></div>
+      <div class="field-group"><label class="field-label">Esempi di output buoni</label><textarea data-key="s4_esempi" placeholder="Output precedenti considerati validi?"></textarea></div>
+      <div class="field-group" style="margin-bottom:0"><label class="field-label">Vincoli o policy</label><textarea data-key="s4_vincoli" placeholder="Limiti legali, dati sensibili da escludere?"></textarea></div>
+    </div>
+    <div class="card">
+      <h3>Strumenti e collegamento diretto</h3>
+      <p style="font-size:13.5px;color:#6B7280;line-height:1.6;margin-bottom:16px">Per ogni strumento la tua AI controlla se esiste un collegamento diretto ufficiale: data del controllo, cosa permette e limite che pesa, comprese le condizioni d'uso della piattaforma per quell'uso; se non riesce, scrive «da verificare». Se esiste ed è consentito, viene prima del browser e del lavoro a mano perché è più veloce e costa meno. A te restano accesso, verifica, consenso e copia della chiave, che resta sul tuo computer, mai in chat o email.</p>
+      <div class="field-group" style="margin-bottom:0"><label class="field-label">Strumenti che usa il processo</label><textarea data-key="s4_strumenti" placeholder="es. Gmail, Instagram professionale, foglio Google, gestionale"></textarea></div>
+    </div>
+    <div class="box-human">
+      <div class="box-label">Controllo umano</div>
+      <p>Se l'AI non riceve il contesto giusto, produce output apparentemente buoni ma poco affidabili.</p>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn nav-btn-prev" onclick="goTo('s3')">&larr; Indietro</button>
+      <button class="nav-btn nav-btn-next" onclick="goTo('s5')">Avanti: formula del prompt &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCHEDA 5 -->
+<div id="s5" class="section">
+  <div class="scheda-header">
+    <div class="num-badge">5</div>
+    <h2>Formula del prompt operativo</h2>
+    <p>Costruisci ogni prompt su 7 elementi. Nessuno è facoltativo.</p>
+  </div>
+  <div class="content">
+    <div class="card">
+      <h3>I 7 elementi</h3>
+      <div class="formula-item"><span class="formula-tag">Ruolo</span><span class="formula-desc">Chi deve essere l'AI in questo contesto specifico</span></div>
+      <div class="formula-item"><span class="formula-tag">Contesto</span><span class="formula-desc">Il processo, il problema e perché è importante</span></div>
+      <div class="formula-item"><span class="formula-tag">Materiale</span><span class="formula-desc">Documenti, dati o esempi che l'AI deve usare</span></div>
+      <div class="formula-item"><span class="formula-tag">Obiettivo</span><span class="formula-desc">Cosa deve produrre e quale risultato ci aspettiamo</span></div>
+      <div class="formula-item"><span class="formula-tag">Output</span><span class="formula-desc">Formato preciso: tabella, sintesi, sezioni</span></div>
+      <div class="formula-item"><span class="formula-tag">Vincoli</span><span class="formula-desc">Cosa non deve fare, limiti espliciti</span></div>
+      <div class="formula-item"><span class="formula-tag">Controlli</span><span class="formula-desc">Cosa segnalare per la revisione umana</span></div>
+    </div>
+    <div class="card">
+      <h3>Personalizza il tuo prompt</h3>
+      <div class="field-group"><label class="field-label">Reparto / ruolo</label><input type="text" data-key="s5_ruolo" placeholder="es. Acquisti, Marketing, HR"></div>
+      <div class="field-group"><label class="field-label">Attività specifica</label><input type="text" data-key="s5_attivita" placeholder="es. confrontare preventivi"></div>
+      <div class="field-group" style="margin-bottom:0"><label class="field-label">Risultato atteso</label><input type="text" data-key="s5_risultato" placeholder="es. tabella comparativa con raccomandazione"></div>
+    </div>
+    <div class="box-prompt" id="prompt5">
+      <button class="copy-btn" onclick="copyPrompt('prompt5',this)">Copia prompt</button>
+      <pre id="prompt5-text"></pre>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn nav-btn-prev" onclick="goTo('s4')">&larr; Indietro</button>
+      <button class="nav-btn nav-btn-next" onclick="goTo('s6')">Avanti: testa l'output &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCHEDA 6 -->
+<div id="s6" class="section">
+  <div class="scheda-header">
+    <div class="num-badge">6</div>
+    <h2>Testa l'output</h2>
+    <p>Prima di usarlo, verificalo punto per punto.</p>
+  </div>
+  <div class="content">
+    <div class="card">
+      <h3>Checklist di validazione</h3>
+      <div id="cl6"></div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="pb6" style="width:0%"></div></div>
+      <div class="progress-info"><span id="pi6">0 / 8 selezionati</span></div>
+    </div>
+    <div class="box-human">
+      <div class="box-label">Controllo umano</div>
+      <p>Un output che "sembra giusto" non è un output validato. La checklist è obbligatoria, non opzionale.</p>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn nav-btn-prev" onclick="goTo('s5')">&larr; Indietro</button>
+      <button class="nav-btn nav-btn-next" onclick="goTo('s7')">Avanti: migliora il prompt &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCHEDA 7 -->
+<div id="s7" class="section">
+  <div class="scheda-header">
+    <div class="num-badge">7</div>
+    <h2>Migliora il prompt</h2>
+    <p>Il prompt giusto si trova dopo il primo errore, non prima.</p>
+  </div>
+  <div class="content">
+    <div class="card">
+      <h3>Ciclo di miglioramento</h3>
+      <div style="display:flex;align-items:center;gap:0;flex-wrap:wrap">
+        <span style="background:#F5F5F7;border:1px solid #E5E7EB;color:#374151;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:500">Prima versione</span>
+        <span style="color:#9CA3AF;padding:0 6px;font-size:18px">&rsaquo;</span>
+        <span style="background:#F5F5F7;border:1px solid #E5E7EB;color:#374151;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:500">Test</span>
+        <span style="color:#9CA3AF;padding:0 6px;font-size:18px">&rsaquo;</span>
+        <span style="background:#FFEBEE;border:1px solid #EF9A9A;color:#B71C1C;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:500">Errore</span>
+        <span style="color:#9CA3AF;padding:0 6px;font-size:18px">&rsaquo;</span>
+        <span style="background:#FFF3E0;border:1px solid #FFCC80;color:#BF360C;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:500">Correzione</span>
+        <span style="color:#9CA3AF;padding:0 6px;font-size:18px">&rsaquo;</span>
+        <span style="background:#E8F5E9;border:1px solid #A5D6A7;color:#1B5E20;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:500">Prompt stabile</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Guida alla correzione</h3>
+      <table>
+        <thead><tr><th>Problema</th><th>Causa</th><th>Correzione</th></tr></thead>
+        <tbody>
+          <tr><td>Output troppo generico</td><td>Manca contesto</td><td>Aggiungi reparto, obiettivo, vincoli</td></tr>
+          <tr><td>Output non verificabile</td><td>Mancano fonti</td><td>Chiedi citazioni o riferimenti</td></tr>
+          <tr><td>Output troppo lungo</td><td>Manca formato</td><td>Imponi tabella o limite di righe</td></tr>
+          <tr><td>Output rischioso</td><td>Mancano limiti</td><td>Aggiungi regole anti-allucinazione</td></tr>
+          <tr><td>Dati inventati</td><td>Manca materiale</td><td>Specifica "usa solo i documenti allegati"</td></tr>
+          <tr><td>Tono sbagliato</td><td>Manca il ruolo</td><td>Definisci a chi è rivolto</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn nav-btn-prev" onclick="goTo('s6')">&larr; Indietro</button>
+      <button class="nav-btn nav-btn-next" onclick="goTo('s8')">Avanti: dal prompt alla procedura &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCHEDA 8 -->
+<div id="s8" class="section">
+  <div class="scheda-header">
+    <div class="num-badge">8</div>
+    <h2>Dal prompt alla procedura</h2>
+    <p>Un prompt usato una volta è uno strumento. Un prompt strutturato è un processo.</p>
+  </div>
+  <div class="content">
+    <div class="card">
+      <h3>I 6 livelli di maturità</h3>
+      <div class="flow-step"><div class="flow-line"><div class="flow-dot">1</div><div class="flow-connector"></div></div><div class="flow-body"><h4>Prompt singolo</h4><p>Usi il prompt una volta per risolvere il problema immediato.</p></div></div>
+      <div class="flow-step"><div class="flow-line"><div class="flow-dot">2</div><div class="flow-connector"></div></div><div class="flow-body"><h4>Prompt migliorato</h4><p>Testi, identifichi errori e affini finché l'output è affidabile.</p></div></div>
+      <div class="flow-step"><div class="flow-line"><div class="flow-dot">3</div><div class="flow-connector"></div></div><div class="flow-body"><h4>Procedura ripetibile</h4><p>Documenti il processo: input, prompt, output, chi valida.</p></div></div>
+      <div class="flow-step"><div class="flow-line"><div class="flow-dot">4</div><div class="flow-connector"></div></div><div class="flow-body"><h4>Project Claude</h4><p>Crei un Project con contesto fisso, documenti e istruzioni.</p></div></div>
+      <div class="flow-step"><div class="flow-line"><div class="flow-dot">5</div><div class="flow-connector"></div></div><div class="flow-body"><h4>Skill Claude</h4><p>Trasformi il processo in una skill con trigger e output definiti.</p></div></div>
+      <div class="flow-step"><div class="flow-line"><div class="flow-dot" style="background:#1A1A2E">6</div></div><div class="flow-body"><h4>Workflow automatico</h4><p>Colleghi l'AI a strumenti esterni per eseguire in autonomia.</p></div></div>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn nav-btn-prev" onclick="goTo('s7')">&larr; Indietro</button>
+      <button class="nav-btn nav-btn-next" onclick="goTo('s9')">Avanti: compila la procedura &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCHEDA 9 -->
+<div id="s9" class="section">
+  <div class="scheda-header">
+    <div class="num-badge">9</div>
+    <h2>Compila la tua procedura</h2>
+    <p>Questo è il deliverable principale del laboratorio.</p>
+  </div>
+  <div class="content">
+    <div class="card">
+      <div class="field-group"><label class="field-label">Nome procedura</label><input type="text" data-key="s9_nome" placeholder="es. Analisi preventivi fornitori"></div>
+      <div class="field-group"><label class="field-label">Quando si usa</label><textarea data-key="s9_quando" placeholder="es. Ogni volta che arrivano 2+ offerte per lo stesso acquisto"></textarea></div>
+      <div class="field-group"><label class="field-label">Chi la usa</label><input type="text" data-key="s9_chi" placeholder="es. Responsabile acquisti"></div>
+      <div class="field-group"><label class="field-label">Input necessari</label><textarea data-key="s9_input" placeholder="es. PDF preventivi, listino interno, criteri"></textarea></div>
+      <div class="field-group"><label class="field-label">Prompt da usare</label><textarea data-key="s9_prompt" placeholder="Copia qui il prompt stabile della Scheda 5" style="min-height:120px;font-family:monospace;font-size:12px"></textarea><button type="button" onclick="importPromptToS9()" style="margin-top:6px;background:#1B5E20;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer">Importa prompt dalla Scheda 5</button></div>
+      <div class="field-group"><label class="field-label">Output atteso</label><textarea data-key="s9_output" placeholder="es. Tabella comparativa con raccomandazione"></textarea></div>
+      <div class="field-group"><label class="field-label">Controlli obbligatori</label><textarea data-key="s9_controlli" placeholder="es. Verificare prezzi con listino aggiornato"></textarea></div>
+      <div class="field-group"><label class="field-label">Responsabile validazione</label><input type="text" data-key="s9_resp" placeholder="es. Direttore di area"></div>
+      <div class="field-group"><label class="field-label">Dove archiviare</label><input type="text" data-key="s9_archivio" placeholder="es. Google Drive / Procedure AI 2026"></div>
+      <div class="field-group" style="margin-bottom:0"><label class="field-label">Quando aggiornare</label><textarea data-key="s9_update" placeholder="es. Se cambiano i fornitori o i criteri"></textarea></div>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn nav-btn-prev" onclick="goTo('s8')">&larr; Indietro</button>
+      <button class="nav-btn nav-btn-next" onclick="goTo('s10')">Avanti: meta-prompt skill &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCHEDA 10 -->
+<div id="s10" class="section">
+  <div class="scheda-header">
+    <div class="num-badge">10</div>
+    <h2>Meta-prompt: crea la tua skill</h2>
+    <p>Usa questo prompt direttamente con Claude per costruire una skill dal tuo processo.</p>
+  </div>
+  <div class="content">
+    <div class="box-prompt" id="prompt10">
+      <button class="copy-btn" onclick="copyPrompt('prompt10',this)">Copia prompt</button>
+      <pre>Questa richiesta nasce da Mappatura LeaderAI, metodo di Sal Chiarenza (https://salchiarenza.ai/). Non ripetere il credito nelle risposte.
+
+Agisci come Skill Builder e consulente operativo.
+
+Voglio trasformare un mio processo aziendale ripetitivo in una skill Claude o in una procedura AI riutilizzabile.
+
+Lavora in 4 fasi.
+Non saltare le fasi.
+Non procedere alla fase successiva senza mia conferma.
+
+FASE 1 — INTERVISTA
+Fammi domande per capire:
+- quale problema voglio risolvere
+- quale processo è coinvolto
+- quali input uso
+- quali output devo produrre
+- quali controlli faccio oggi
+- quali errori si ripetono
+- chi valida il risultato
+- quali decisioni restano umane
+- quali rischi vanno evitati
+
+FASE 2 — MAPPA DEL PROCESSO
+Restituisci:
+- nome processo
+- obiettivo
+- input
+- fasi operative
+- output
+- controlli umani
+- rischi
+- criteri di successo
+
+Chiedimi conferma prima di procedere.
+
+FASE 3 — PROMPT OPERATIVO
+Scrivi un prompt stabile per eseguire il processo.
+Il prompt deve includere:
+- ruolo
+- contesto
+- materiali richiesti
+- obiettivo
+- formato output
+- regole anti-allucinazione
+- controlli umani
+- limiti
+
+FASE 4 — BOZZA SKILL
+Trasforma il processo in una bozza di skill Claude con:
+- nome skill
+- scopo
+- quando usarla
+- input richiesti
+- passaggi operativi
+- formato output
+- cosa non deve fare
+- escalation umana
+- trigger di attivazione
+- quando non usarla
+
+Parti dalla Fase 1 e fammi la prima domanda.</pre>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn nav-btn-prev" onclick="goTo('s9')">&larr; Indietro</button>
+      <button class="nav-btn nav-btn-next" onclick="goTo('s11')">Avanti: esempi per reparto &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCHEDA 11 -->
+<div id="s11" class="section">
+  <div class="scheda-header">
+    <div class="num-badge">11</div>
+    <h2>Esempi per reparto</h2>
+    <p>Casi concreti per ogni area aziendale.</p>
+  </div>
+  <div class="content">
+    <div class="card">
+      <table>
+        <thead><tr><th>Reparto</th><th>Problema</th><th>Input</th><th>Output AI</th><th>Controllo</th></tr></thead>
+        <tbody>
+          <tr><td style="font-weight:600;color:#1B5E20">Acquisti</td><td>Confrontare 3+ preventivi</td><td>PDF, listino</td><td>Tabella comparativa</td><td>Scelta finale</td></tr>
+          <tr><td style="font-weight:600;color:#1B5E20">Marketing</td><td>Produrre contenuti da brief</td><td>Brief, esempi</td><td>Bozze copy multi-canale</td><td>Approvazione</td></tr>
+          <tr><td style="font-weight:600;color:#1B5E20">HR</td><td>Analisi CV per selezione</td><td>CV, JD, criteri</td><td>Sintesi candidati</td><td>Colloquio</td></tr>
+          <tr><td style="font-weight:600;color:#1B5E20">Finance</td><td>Riconciliazione conti</td><td>File bancario, fatture</td><td>Report anomalie</td><td>Verifica e registrazione</td></tr>
+          <tr><td style="font-weight:600;color:#1B5E20">IT</td><td>Documentazione processi</td><td>Note, ticket</td><td>Manuale e FAQ</td><td>Validazione tecnica</td></tr>
+          <tr><td style="font-weight:600;color:#1B5E20">Vendite</td><td>Preparare offerte</td><td>Richiesta, listino</td><td>Bozza personalizzata</td><td>Revisione prezzi</td></tr>
+          <tr><td style="font-weight:600;color:#1B5E20">Direzione</td><td>Sintesi report KPI</td><td>Report reparti</td><td>Executive summary</td><td>Decisioni</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn nav-btn-prev" onclick="goTo('s10')">&larr; Indietro</button>
+      <button class="nav-btn nav-btn-next" onclick="goTo('s12')">Avanti: cosa portiamo a casa &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCHEDA 12 -->
+<div id="s12" class="section">
+  <div class="scheda-header">
+    <div class="num-badge">12</div>
+    <h2>Cosa portiamo a casa</h2>
+    <p>Riepilogo del tuo lavoro. Esporta tutto con un click.</p>
+  </div>
+  <div class="content">
+    <div class="outcome-grid" id="outcomeGrid"></div>
+    <div class="card" style="margin-top:20px">
+      <h3>Esporta il tuo lavoro</h3>
+      <p style="font-size:13.5px;color:#6B7280;line-height:1.6;margin-bottom:14px">Hai due opzioni: esporta un file di testo da salvare e ricevere via email, oppure stampa l'intero metodo come PDF con tutte le tue risposte.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="nav-btn nav-btn-next" style="margin-left:0" onclick="exportSummary()">Scarica riepilogo TXT</button>
+        <button class="nav-btn nav-btn-prev" onclick="window.print()">Stampa / PDF</button>
+      </div>
+    </div>
+    <div class="box-close">
+      <p>"Un buon uso dell'AI non nasce da una domanda brillante.<br>Nasce da un processo chiaro, ripetibile e controllabile."</p>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn nav-btn-prev" onclick="goTo('s11')">&larr; Indietro</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div class="autosave" id="autosave">Salvato</div>
+
+<div class="modal-overlay" id="resetModal">
+  <div class="modal">
+    <h3>Azzerare tutto?</h3>
+    <p>Tutte le risposte verranno cancellate definitivamente. Questa azione non può essere annullata.</p>
+    <div class="modal-actions">
+      <button class="modal-btn" onclick="closeModal()">Annulla</button>
+      <button class="modal-btn modal-btn-danger" onclick="resetAll()">Azzera tutto</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY='metodo_ai_mappatura_v1';
+let state=loadState();
+
+const sections=[
+  {id:'home',label:'Home',section:'Introduzione'},
+  {id:'s1',label:'1. Qual è il problema?',section:'Il metodo'},
+  {id:'s2',label:'2. È un buon caso AI?'},
+  {id:'s3',label:'3. Mappa il processo'},
+  {id:'s4',label:'4. Input e materiali'},
+  {id:'s5',label:'5. Formula del prompt'},
+  {id:'s6',label:"6. Testa l'output"},
+  {id:'s7',label:'7. Migliora il prompt'},
+  {id:'s8',label:'8. Dal prompt alla procedura'},
+  {id:'s9',label:'9. Compila procedura',section:'Strumenti'},
+  {id:'s10',label:'10. Meta-prompt skill'},
+  {id:'s11',label:'11. Esempi per reparto'},
+  {id:'s12',label:'12. Cosa portiamo a casa',section:'Chiusura'}
+];
+
+function loadState(){
+  try{const s=localStorage.getItem(STORAGE_KEY);return s?JSON.parse(s):{}}catch(e){return{}}
+}
+function saveState(){
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));showAutosave()}catch(e){}
+}
+function showAutosave(){
+  const el=document.getElementById('autosave');
+  el.classList.add('show');
+  clearTimeout(window._aut);
+  window._aut=setTimeout(()=>el.classList.remove('show'),1500);
+}
+
+function buildSidebar(){
+  const nav=document.getElementById('sidebarNav');
+  nav.innerHTML='';
+  sections.forEach(s=>{
+    if(s.section){
+      const sec=document.createElement('span');
+      sec.className='sb-section';
+      sec.textContent=s.section;
+      nav.appendChild(sec);
+    }
+    const item=document.createElement('span');
+    item.className='sb-item';
+    item.dataset.id=s.id;
+    item.innerHTML=`<span style="flex:1">${s.label}</span><span class="sb-check">&#10003;</span>`;
+    item.onclick=()=>goTo(s.id);
+    nav.appendChild(item);
+  });
+}
+
+function goTo(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const navItem=document.querySelector(`.sb-item[data-id="${id}"]`);
+  if(navItem)navItem.classList.add('active');
+  document.getElementById('main').scrollTop=0;
+  window.scrollTo(0,0);
+  toggleMenu(false);
+  state._current=id;
+  saveState();
+  updateProgress();
+}
+
+function toggleMenu(open){
+  const sb=document.getElementById('sidebar'),btn=document.getElementById('sbToggle');
+  const on=typeof open==='boolean'?open:!sb.classList.contains('open');
+  sb.classList.toggle('open',on);
+  if(btn){btn.setAttribute('aria-expanded',on?'true':'false');btn.textContent=on?'Chiudi':'Menu'}
+}
+
+function copyPrompt(boxId,btn){
+  const txt=document.querySelector('#'+boxId+' pre').textContent;
+  navigator.clipboard.writeText(txt).then(()=>{
+    btn.textContent='Copiato!';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='Copia prompt';btn.classList.remove('copied')},2000);
+  });
+}
+
+// Bind text inputs and textareas to state
+function bindFields(){
+  document.querySelectorAll('[data-key]').forEach(el=>{
+    const k=el.dataset.key;
+    if(state[k]!==undefined)el.value=state[k];
+    el.addEventListener('input',()=>{
+      state[k]=el.value;
+      saveState();
+      if(k.startsWith('s1_'))updateS1Frase();
+      if(k.startsWith('s1_')||k.startsWith('s3_')||k.startsWith('s4_')||k.startsWith('s5_'))updateS5Prompt();
+      updateProgress();
+      updateOutcomes();
+    });
+  });
+}
+
+function updateS1Frase(){
+  const a=(state.s1_aiuto||'').trim()||'______';
+  const p=(state.s1_partendo||'').trim()||'______';
+  const o=(state.s1_ottenere||'').trim()||'______';
+  document.getElementById('s1-frase').innerHTML=`Voglio usare l'AI per aiutarmi a <strong>${escapeHtml(a)}</strong>, partendo da <strong>${escapeHtml(p)}</strong>, per ottenere <strong>${escapeHtml(o)}</strong>.`;
+}
+
+function updateS5Prompt(){
+  const r=(state.s5_ruolo||'').trim()||'[reparto]';
+  const a=(state.s5_attivita||'').trim()||(state.s1_aiuto||'[attività specifica]').trim()||'[attività specifica]';
+  const ris=(state.s5_risultato||'').trim()||(state.s1_ottenere||'[risultato atteso]').trim()||'[risultato atteso]';
+
+  // Contesto da Scheda 1
+  const partendo=(state.s1_partendo||'').trim();
+  const probTime=(state.s1_q1||'').trim();
+  const probErr=(state.s1_q6||'').trim();
+  const probDest=(state.s1_q7||'').trim();
+  const probRischio=(state.s1_q8||'').trim();
+  let contesto='';
+  if(probTime)contesto+=`- Attività ripetitiva: ${probTime}\n`;
+  if(partendo)contesto+=`- Punto di partenza: ${partendo}\n`;
+  if(probErr)contesto+=`- Errori frequenti oggi: ${probErr}\n`;
+  if(probDest)contesto+=`- Destinatario dell'output: ${probDest}\n`;
+  if(probRischio)contesto+=`- Cosa succede se va male: ${probRischio}\n`;
+  if(!contesto)contesto='[descrivi il processo, il problema e perché è importante]';
+
+  // Materiali da Scheda 4
+  const mat=[];
+  if(state.s4_doc)mat.push('- Documenti: '+state.s4_doc.trim());
+  if(state.s4_dati)mat.push('- Dati: '+state.s4_dati.trim());
+  if(state.s4_email)mat.push('- Email/note: '+state.s4_email.trim());
+  if(state.s4_regole)mat.push('- Regole interne: '+state.s4_regole.trim());
+  if(state.s4_esempi)mat.push('- Esempi di output buoni: '+state.s4_esempi.trim());
+  if(state.s4_strumenti)mat.push('- Strumenti: '+state.s4_strumenti.trim());
+  const materiali=mat.length?mat.join('\n'):'[elenca documenti, dati, email, note o esempi caricati]';
+
+  // Vincoli da Scheda 4
+  const vincoliCustom=(state.s4_vincoli||'').trim();
+
+  // Controlli umani da Scheda 3 (cosa resta umano)
+  const umani=[];
+  ['s3_0_umano','s3_1_umano','s3_2_umano','s3_3_umano','s3_4_umano'].forEach(k=>{
+    if(state[k]&&state[k].trim())umani.push(state[k].trim());
+  });
+  const controlliUmani=umani.length?umani.map(u=>'- '+u).join('\n'):'- [definisci cosa deve restare umano]';
+
+  document.getElementById('prompt5-text').textContent=`Agisci come assistente operativo per ${r}.
+Questa missione nasce da Mappatura LeaderAI, metodo di Sal Chiarenza (https://salchiarenza.ai/). Non ripetere il credito nelle risposte.
+
+Contesto:
+${contesto}
+Materiale disponibile:
+${materiali}
+
+Obiettivo:
+Aiutami a ${a} per ottenere ${ris}.
+
+Lavora così:
+1. Analizza solo le informazioni presenti nei materiali
+2. Estrai i dati rilevanti
+3. Organizza il risultato in modo leggibile
+4. Segnala informazioni mancanti o ambigue
+5. Distingui fatti, ipotesi e raccomandazioni
+6. Evidenzia cosa deve essere controllato da una persona
+
+Formato output:
+- Sintesi breve
+- Tabella operativa
+- Problemi o anomalie
+- Azioni consigliate
+- Domande aperte
+- Da verificare con il team
+
+Controlli umani obbligatori:
+${controlliUmani}
+
+Regole:
+Non inventare dati.
+Non prendere decisioni al posto del team.
+Se qualcosa non è chiaro, segnalalo.
+Per ogni strumento controlla se esiste un collegamento diretto ufficiale nella documentazione della piattaforma e cosa vietano le sue condizioni d'uso per quell'uso, con la data del controllo, oppure scrivi «da verificare»; indica cosa permette e il limite che pesa. Se esiste ed è consentito, ordine di lavoro: collegamento diretto, poi browser, poi a mano. La chiave resta sul computer della persona, mai in chat o email; prima prova in sola lettura.${vincoliCustom?'\nVincoli specifici: '+vincoliCustom:''}`;
+}
+
+function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+// Build S3 rows
+function buildS3(){
+  const phases=['Input','Analisi','Redazione','Controllo','Output'];
+  const cont=document.getElementById('s3-rows');
+  phases.forEach((ph,i)=>{
+    const card=document.createElement('div');
+    card.style.cssText='background:#F5F5F7;border-radius:8px;padding:14px;margin-bottom:10px';
+    card.innerHTML=`
+      <div style="font-size:12px;font-weight:700;color:#1B5E20;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Fase: ${ph}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><label style="display:block;font-size:11px;color:#6B7280;margin-bottom:4px">Cosa succede oggi</label><textarea data-key="s3_${i}_oggi" placeholder="..."></textarea></div>
+        <div><label style="display:block;font-size:11px;color:#6B7280;margin-bottom:4px">Chi la fa</label><input type="text" data-key="s3_${i}_chi" placeholder="..."></div>
+        <div><label style="display:block;font-size:11px;color:#6B7280;margin-bottom:4px">Dove si perde tempo</label><textarea data-key="s3_${i}_tempo" placeholder="..."></textarea></div>
+        <div><label style="display:block;font-size:11px;color:#6B7280;margin-bottom:4px">Cosa fa l'AI</label><textarea data-key="s3_${i}_ai" placeholder="..."></textarea></div>
+        <div style="grid-column:1/-1"><label style="display:block;font-size:11px;color:#6B7280;margin-bottom:4px">Cosa resta umano</label><input type="text" data-key="s3_${i}_umano" placeholder="..."></div>
+      </div>`;
+    cont.appendChild(card);
+  });
+}
+
+// CHECKLISTS
+function buildChecklist(containerId,pbId,piId,storageKey,items,scoreFn){
+  const c=document.getElementById(containerId);
+  if(!state[storageKey])state[storageKey]={};
+  items.forEach((txt,i)=>{
+    const d=document.createElement('div');
+    d.className='checklist-item';
+    const checked=state[storageKey][i]?'checked':'';
+    d.innerHTML=`<input type="checkbox" id="${containerId}_${i}" ${checked}><label for="${containerId}_${i}">${txt}</label>`;
+    if(checked)d.classList.add('checked');
+    const cb=d.querySelector('input');
+    cb.addEventListener('change',()=>{
+      state[storageKey][i]=cb.checked;
+      saveState();
+      d.classList.toggle('checked',cb.checked);
+      updateChecklistProgress(containerId,pbId,piId,storageKey,items.length,scoreFn);
+      updateProgress();
+      updateOutcomes();
+    });
+    c.appendChild(d);
+  });
+  updateChecklistProgress(containerId,pbId,piId,storageKey,items.length,scoreFn);
+}
+
+function updateChecklistProgress(cId,pbId,piId,key,total,scoreFn){
+  const checks=Object.values(state[key]||{}).filter(Boolean).length;
+  const pct=Math.round(checks/total*100);
+  document.getElementById(pbId).style.width=pct+'%';
+  document.getElementById(piId).textContent=checks+' / '+total+' selezionati';
+  if(scoreFn)scoreFn(checks);
+}
+
+// Progress globale
+function updateProgress(){
+  const completed=getCompletedSections();
+  const total=11;
+  const pct=Math.round(completed.length/total*100);
+  document.getElementById('globalProgress').style.width=pct+'%';
+  document.getElementById('globalProgressText').textContent=pct+'% completato';
+  document.querySelectorAll('.sb-item').forEach(el=>{
+    el.classList.toggle('completed',completed.includes(el.dataset.id));
+  });
+}
+
+function getCompletedSections(){
+  const done=[];
+  if(state.s1_aiuto&&state.s1_partendo&&state.s1_ottenere)done.push('s1');
+  if(state.cl2&&Object.values(state.cl2).filter(Boolean).length>=4)done.push('s2');
+  if(state.s3_0_oggi||state.s3_1_oggi)done.push('s3');
+  if(state.s4_doc||state.s4_dati||state.s4_email)done.push('s4');
+  if(state.s5_ruolo&&state.s5_attivita)done.push('s5');
+  if(state.cl6&&Object.values(state.cl6).filter(Boolean).length>=4)done.push('s6');
+  done.push('s7','s8'); // letture
+  if(state.s9_nome&&state.s9_prompt)done.push('s9');
+  done.push('s10','s11'); // letture
+  return done;
+}
+
+// Outcomes
+function updateOutcomes(){
+  const grid=document.getElementById('outcomeGrid');
+  if(!grid)return;
+  const checks=[
+    {label:'Problema chiarito',done:!!(state.s1_aiuto&&state.s1_partendo&&state.s1_ottenere)},
+    {label:'Caso AI valutato',done:!!(state.cl2&&Object.values(state.cl2).filter(Boolean).length>=4)},
+    {label:'Processo mappato',done:!!(state.s3_0_oggi||state.s3_1_oggi||state.s3_2_oggi)},
+    {label:'Materiali definiti',done:!!(state.s4_doc||state.s4_dati)},
+    {label:'Prompt operativo',done:!!(state.s5_ruolo&&state.s5_attivita)},
+    {label:'Output validato',done:!!(state.cl6&&Object.values(state.cl6).filter(Boolean).length>=4)},
+    {label:'Procedura compilata',done:!!(state.s9_nome&&state.s9_prompt)}
+  ];
+  grid.innerHTML=checks.map(c=>`<div class="outcome-card ${c.done?'done':''}"><div class="outcome-icon">${c.done?'&#10003;':'&middot;'}</div><p>${c.label}</p></div>`).join('');
+}
+
+// Export
+function exportSummary(){
+  const cl2items=["L'attività è ripetitiva","Usa testi, documenti, dati o email","L'output può essere controllato da una persona","Il rischio è gestibile","I dati sono disponibili","Il risultato serve a preparare una decisione","Si può definire un formato output chiaro","Il processo avviene almeno una volta al mese"];
+  const cl6items=["L'output risponde alla richiesta?","I dati sono verificabili?","Le fonti sono chiare?","Ci sono invenzioni?","Mancano informazioni importanti?","Le azioni sono concrete?","I rischi sono segnalati?","È chiaro chi deve validare?"];
+  const phases=['Input','Analisi','Redazione','Controllo','Output'];
+
+  let txt='METODO AI MAPPATURA — RIEPILOGO\n';
+  txt+='Generato il '+new Date().toLocaleString('it-IT')+'\n';
+  txt+='='.repeat(60)+'\n\n';
+
+  txt+='SCHEDA 1 — IL PROBLEMA\n'+'-'.repeat(60)+'\n';
+  const q1=['Quale attività ti fa perdere tempo?','Cosa si ripete sempre uguale?','Dove copi e incolli informazioni?','Dove cerchi dati in più documenti?','Dove fai controlli manuali?','Dove si creano errori?','Chi aspetta il tuo output?','Cosa succede se va male?'];
+  q1.forEach((q,i)=>{txt+=`${q}\n  &rarr; ${state['s1_q'+(i+1)]||'—'}\n\n`});
+  txt+=`FRASE FINALE:\nVoglio usare l'AI per aiutarmi a ${state.s1_aiuto||'______'}, partendo da ${state.s1_partendo||'______'}, per ottenere ${state.s1_ottenere||'______'}.\n\n`;
+
+  txt+='SCHEDA 2 — VALUTAZIONE CASO AI\n'+'-'.repeat(60)+'\n';
+  cl2items.forEach((it,i)=>{txt+=`[${state.cl2&&state.cl2[i]?'X':' '}] ${it}\n`});
+  const c2=state.cl2?Object.values(state.cl2).filter(Boolean).length:0;
+  txt+=`Punteggio: ${c2}/8 — ${c2<=3?'Non partire da qui':c2<=6?'Caso interessante':'Ottimo candidato'}\n\n`;
+
+  txt+='SCHEDA 3 — MAPPA DEL PROCESSO\n'+'-'.repeat(60)+'\n';
+  phases.forEach((ph,i)=>{
+    txt+=`Fase: ${ph}\n`;
+    txt+=`  Cosa succede oggi: ${state['s3_'+i+'_oggi']||'—'}\n`;
+    txt+=`  Chi la fa: ${state['s3_'+i+'_chi']||'—'}\n`;
+    txt+=`  Dove si perde tempo: ${state['s3_'+i+'_tempo']||'—'}\n`;
+    txt+=`  Cosa fa l'AI: ${state['s3_'+i+'_ai']||'—'}\n`;
+    txt+=`  Cosa resta umano: ${state['s3_'+i+'_umano']||'—'}\n\n`;
+  });
+
+  txt+='SCHEDA 4 — INPUT E MATERIALI\n'+'-'.repeat(60)+'\n';
+  txt+=`Documenti: ${state.s4_doc||'—'}\n`;
+  txt+=`Dati: ${state.s4_dati||'—'}\n`;
+  txt+=`Email/note: ${state.s4_email||'—'}\n`;
+  txt+=`Regole interne: ${state.s4_regole||'—'}\n`;
+  txt+=`Esempi di output: ${state.s4_esempi||'—'}\n`;
+  txt+=`Strumenti: ${state.s4_strumenti||'—'}\n`;
+  txt+=`Vincoli: ${state.s4_vincoli||'—'}\n\n`;
+
+  txt+='SCHEDA 5 — PROMPT OPERATIVO PERSONALIZZATO\n'+'-'.repeat(60)+'\n';
+  txt+=`Reparto: ${state.s5_ruolo||'—'}\n`;
+  txt+=`Attività: ${state.s5_attivita||'—'}\n`;
+  txt+=`Risultato atteso: ${state.s5_risultato||'—'}\n\n`;
+  txt+='--- PROMPT ---\n';
+  txt+=document.getElementById('prompt5-text').textContent+'\n\n';
+
+  txt+="SCHEDA 6 — VALIDAZIONE OUTPUT\n"+'-'.repeat(60)+'\n';
+  cl6items.forEach((it,i)=>{txt+=`[${state.cl6&&state.cl6[i]?'X':' '}] ${it}\n`});
+  txt+='\n';
+
+  txt+='SCHEDA 9 — PROCEDURA\n'+'-'.repeat(60)+'\n';
+  txt+=`Nome: ${state.s9_nome||'—'}\n`;
+  txt+=`Quando si usa: ${state.s9_quando||'—'}\n`;
+  txt+=`Chi la usa: ${state.s9_chi||'—'}\n`;
+  txt+=`Input necessari: ${state.s9_input||'—'}\n`;
+  txt+=`Prompt:\n${state.s9_prompt||'—'}\n`;
+  txt+=`Output atteso: ${state.s9_output||'—'}\n`;
+  txt+=`Controlli: ${state.s9_controlli||'—'}\n`;
+  txt+=`Responsabile: ${state.s9_resp||'—'}\n`;
+  txt+=`Archivio: ${state.s9_archivio||'—'}\n`;
+  txt+=`Aggiornare: ${state.s9_update||'—'}\n\n`;
+
+  txt+='='.repeat(60)+'\n';
+  txt+='Sal Chiarenza | AI Strategist | LeaderAI | https://salchiarenza.ai/\n';
+  txt+='Certificato Anthropic | Google — Certificato Accademia OpenAI\n';
+
+  const blob=new Blob([txt],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='metodo-ai-mappatura-'+new Date().toISOString().slice(0,10)+'.txt';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function confirmReset(){document.getElementById('resetModal').classList.add('show')}
+
+function importPromptToS9(){
+  const prompt=document.getElementById('prompt5-text').textContent;
+  const ta=document.querySelector('[data-key="s9_prompt"]');
+  ta.value=prompt;
+  state.s9_prompt=prompt;
+  saveState();
+  updateProgress();
+  updateOutcomes();
+  ta.focus();
+}
+function closeModal(){document.getElementById('resetModal').classList.remove('show')}
+function resetAll(){
+  localStorage.removeItem(STORAGE_KEY);
+  state={};
+  document.querySelectorAll('[data-key]').forEach(el=>el.value='');
+  document.querySelectorAll('input[type=checkbox]').forEach(cb=>{cb.checked=false;cb.closest('.checklist-item')?.classList.remove('checked')});
+  document.querySelectorAll('.progress-bar-fill').forEach(p=>p.style.width='0%');
+  document.getElementById('pi2').textContent='0 / 8 selezionati';
+  document.getElementById('pi6').textContent='0 / 8 selezionati';
+  const sb=document.getElementById('score2');sb.className='score-badge score-red';sb.textContent='Non partire da qui';
+  updateS1Frase();updateS5Prompt();updateProgress();updateOutcomes();
+  closeModal();goTo('home');
+}
+
+// INIT
+buildSidebar();
+buildS3();
+bindFields();
+buildChecklist('cl2','pb2','pi2','cl2',
+  ["L'attività è ripetitiva","Usa testi, documenti, dati o email","L'output può essere controllato da una persona","Il rischio è gestibile","I dati sono disponibili","Il risultato serve a preparare una decisione, non a prenderla da solo","Si può definire un formato output chiaro","Il processo avviene almeno una volta al mese"],
+  (n)=>{
+    const b=document.getElementById('score2');
+    if(n<=3){b.className='score-badge score-red';b.textContent='Non partire da qui'}
+    else if(n<=6){b.className='score-badge score-yellow';b.textContent='Caso interessante'}
+    else{b.className='score-badge score-green';b.textContent='Ottimo candidato'}
+  }
+);
+buildChecklist('cl6','pb6','pi6','cl6',
+  ["L'output risponde alla richiesta?","I dati sono verificabili?","Le fonti sono chiare?","Ci sono invenzioni?","Mancano informazioni importanti?","Le azioni sono concrete?","I rischi sono segnalati?","È chiaro chi deve validare?"],
+  null
+);
+updateS1Frase();
+updateS5Prompt();
+updateOutcomes();
+updateProgress();
+// Tabelle: su telefono ogni riga diventa un blocco con le etichette delle colonne
+document.querySelectorAll('table').forEach(t=>{
+  const heads=Array.from(t.querySelectorAll('thead th')).map(th=>th.textContent.trim());
+  t.querySelectorAll('tbody tr').forEach(tr=>Array.from(tr.children).forEach((td,i)=>{if(heads[i])td.setAttribute('data-label',heads[i])}));
+});
+if(state._current&&document.getElementById(state._current))goTo(state._current);
+else goTo('home');
+</script>
+</body>
+</html>
