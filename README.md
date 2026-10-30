@@ -27,6 +27,7 @@ Se il primo lavoro da affidare all’AI è ancora da scegliere, usa la [Mappatur
 
 - [Mini guida agli agenti di Anthropic](ISTRUZIONI.md): cinque passi, agenti di esempio e prove su casi fittizi prima del lavoro reale.
 - [Mappatura AI](mappatura/README.md): tre percorsi già esistenti, per Claude, per ChatGPT/Codex e per lavorare nella chat con sei prompt. Gli HTML si aprono sul computer dopo aver scaricato ed estratto lo [ZIP](https://github.com/salChiarenza/ecosistema-ai-gratuito/archive/refs/heads/main.zip).
+- [Lavoro leggero — beta 0.1.0-beta.1](lavoro-leggero/SKILL.md): affida a Haiku le letture e le operazioni semplici in Claude Code, senza il report del Tutor settimanale. Beta per macOS/Linux; [scarica lo ZIP](https://raw.githubusercontent.com/salChiarenza/ecosistema-ai-gratuito/main/lavoro-leggero/lavoro-leggero-0.1.0-beta.1.zip).
 - [Mappa dell’Ecosistema](immagini/mappa.png), anche [nel formato per telefono](immagini/mappa-telefono.png).
 
 ## Fonti e utilizzo
